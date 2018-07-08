@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Swashbuckle;
 using Swashbuckle.AspNetCore.Swagger;
+using BaseCoreApi.Models;
 //using Serilog.Sinks.LogstashHttp;
 
 namespace BaseCoreApi
@@ -39,6 +40,7 @@ namespace BaseCoreApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+            services.AddSingleton<IPersonService,PersonService>(); 
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "BaseCoreApi API", Version = "v1" });

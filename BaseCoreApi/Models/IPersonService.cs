@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace BaseCoreApi.Models
 {
-    interface IPersonService
+    public interface IPersonService
     {
         List<Person> GetAll();
         Person Get(int id);

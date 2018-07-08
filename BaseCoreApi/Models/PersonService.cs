@@ -12,9 +12,10 @@ namespace BaseCoreApi.Models
         public PersonService()
         {
             //Add a Person 
-            if(Persons.Count < 1 )
+            if(Persons == null)
             {
-                Persons.Add(new Person { Id = 1, Age = 32, Name = "Joe" }); 
+                Persons = new List<Person>();
+                Persons.Add(new Person { Id = 1, Age = 32, Name = "Joe" });
             }
         }
 
