@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  basecoreapi:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "80"

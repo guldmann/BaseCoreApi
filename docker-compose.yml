@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  basecoreapi:
+    image: ${DOCKER_REGISTRY}basecoreapi
+    build:
+      context: .
+      dockerfile: BaseCoreApi/Dockerfile
