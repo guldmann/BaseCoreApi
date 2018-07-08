@@ -7,11 +7,13 @@ namespace BaseCoreApi.Models
 {
     interface IPersonService
     {
-        Person GetAll();
+        List<Person> GetAll();
         Person Get(int id);
         Person Create(string name, int age);
 
-        bool Delete(int id); 
+        bool Delete(int id);
+
+        bool Exists(int id);
 
 
     }
