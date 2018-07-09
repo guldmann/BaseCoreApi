@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace BaseCoreApi.Models
 {
@@ -12,13 +10,12 @@ namespace BaseCoreApi.Models
         public PersonService()
         {
             //Add a Person 
-            if(Persons == null)
+            if(Persons == null || Persons.Count <1 )
             {
                 Persons = new List<Person>();
                 Persons.Add(new Person { Id = 1, Age = 32, Name = "Joe" });
             }
         }
-
 
         public Person Create(string name, int age)
         {
