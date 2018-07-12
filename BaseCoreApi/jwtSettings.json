@@ -1,0 +1,5 @@
+﻿{  
+    "ServerSecret": "SuperSecretKeyHere",
+    "Issuer": "localhost",
+    "Audience": "APIUser" 
+}

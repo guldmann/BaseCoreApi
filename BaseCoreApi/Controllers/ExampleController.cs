@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using BaseCoreApi.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
+
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -13,27 +12,32 @@ namespace BaseCoreApi.Controllers
     public class ExampleController : Controller
     {
         private readonly IPersonService _personService;
-        public ExampleController(IPersonService personService)
+        private readonly ILogger<ExampleController> _logger;
+        public ExampleController(IPersonService personService,ILogger<ExampleController> logger )
         {
-            _personService = personService; 
+            _personService = personService;
+            _logger = logger; 
         }
 
 
         // GET: api/<controller>
+        [Authorize]
         [HttpGet]
         public IActionResult GetAll()
         {
             var persons = _personService.GetAll();
+            _logger.LogDebug($"GetALL: {persons.ToJson()}" );
             return Ok(persons);
         }
 
         // GET api/<controller>/5
         [HttpGet("{id}")]
         public IActionResult Get(int id)
-        {
+        {           
             if(_personService.Exists(id))
             {
                 var person = _personService.Get(id);
+                _logger.LogDebug($"Get id:{id} => {person.ToJson()} " );
                 return Ok(person); 
             }
             return NotFound();
@@ -43,7 +47,9 @@ namespace BaseCoreApi.Controllers
         [HttpPost]
         public IActionResult Create(string name, int age)
         {
+            
             var person = _personService.Create(name, age);
+            _logger.LogDebug($"Create {name}, {age} => {person.ToJson()}" ); 
             return CreatedAtAction(nameof(this.Get), person); 
         }
 
