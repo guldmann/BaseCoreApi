@@ -9,10 +9,11 @@ using Swashbuckle.AspNetCore.Swagger;
 using BaseCoreApi.Models;
 using Serilog.Events;
 using Serilog.Sinks.Elasticsearch;
-using System;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
+using Serilog.Configuration;
+using System;
 //using Serilog.Sinks.LogstashHttp;
 
 namespace BaseCoreApi
@@ -31,25 +32,42 @@ namespace BaseCoreApi
                      config.ReloadOnChange = true;
                  })
                  .AddJsonFile("appsettings.json")
+                 .AddJsonFile("appsettingsSerilog.json")
                  .AddEnvironmentVariables()
                  .AddInMemoryCollection();
 
+            //Add jwtOption to configuration 
             JWTOptions jWTOptions = new JWTOptions();
             builder.Build().Bind(jWTOptions);
             Configuration = builder.Build();
+           
+
 
             //Log to Elasticsearch on localhost / Kiban  And to Rolling text file 
             //TODO: Get log-level and Elasticsearch Uri from configuration 
+            
             Log.Logger = new LoggerConfiguration()
                 .Enrich.FromLogContext()
-                .MinimumLevel.Debug()                
-                .WriteTo.RollingFile(Path.Combine(env.ContentRootPath, "BaseCoreApi-log-{Date}.log")) //in tamplate make this like "$safeprojectname$-log-{Date}.log"               
-                .WriteTo.Elasticsearch().WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://127.0.0.1:9200"))
+                .MinimumLevel.Debug()
+                .WriteTo.Elasticsearch(new ElasticsearchSinkOptions(new Uri("http://localhost:9200"))
                 {
-                    MinimumLogEventLevel = LogEventLevel.Debug,
                     AutoRegisterTemplate = true,
+                    AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv6
                 })
+                .WriteTo.RollingFile("BaseCoreApi-log-{Date}.log") //in tamplate make this like "$safeprojectname$-log-{Date}.log"    
                 .CreateLogger();
+                
+
+
+            /*
+             * Work in progress to read serilog settings from AppsettingsSerilog.json 
+             * 
+            var logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(Configuration)
+                .CreateLogger();
+
+            */
+
         }
 
         public IConfigurationRoot Configuration { get; }
@@ -57,7 +75,8 @@ namespace BaseCoreApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            
+
+            services.ConfigureApplicationCookie(option => option.LoginPath = "/Authenticate/");
             //JWT Authentication 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -71,6 +90,7 @@ namespace BaseCoreApi
                         ValidAudience = Configuration["Audience"]
                     };
                 });
+            
 
             //JWT settings 
             services.Configure<JWTOptions>(Configuration);
@@ -115,7 +135,9 @@ namespace BaseCoreApi
             });
 
             //Authentication
-            app.UseAuthentication(); 
+            app.UseAuthentication();
+
+          
 
             //MVC
             app.UseMvc(routes =>

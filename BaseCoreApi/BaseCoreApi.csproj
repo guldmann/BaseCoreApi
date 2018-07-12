@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.8" />
     <PackageReference Include="Serilog.Extensions.Logging.File" Version="1.1.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="2.6.1" />
     <PackageReference Include="Serilog.Sinks.ElasticSearch" Version="6.5.0" />
     <PackageReference Include="Serilog.Sinks.Fluentd.Logstash" Version="1.0.0" />
     <PackageReference Include="Serilog.Sinks.LogstashHttp" Version="1.2.0" />
