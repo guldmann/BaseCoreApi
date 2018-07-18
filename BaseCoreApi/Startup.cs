@@ -23,7 +23,7 @@ namespace BaseCoreApi
 
         public Startup(IHostingEnvironment env)
         {
-            // Load appsettings
+            // Load Settings
             var builder = new ConfigurationBuilder()
                  .SetBasePath(env.ContentRootPath)
                  .AddJsonFile(config =>
@@ -39,13 +39,10 @@ namespace BaseCoreApi
             //Add jwtOption to configuration 
             JWTOptions jWTOptions = new JWTOptions();
             builder.Build().Bind(jWTOptions);
-            Configuration = builder.Build();
-           
-
+            Configuration = builder.Build();        
 
             //Log to Elasticsearch on localhost / Kiban  And to Rolling text file 
-            //TODO: Get log-level and Elasticsearch Uri from configuration 
-            
+            //TODO: Get log-level and Elasticsearch Uri from configuration             
             Log.Logger = new LoggerConfiguration()
                 .Enrich.FromLogContext()
                 .MinimumLevel.Debug()
@@ -54,7 +51,7 @@ namespace BaseCoreApi
                     AutoRegisterTemplate = true,
                     AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv6
                 })
-                .WriteTo.RollingFile("BaseCoreApi-log-{Date}.log") //in tamplate make this like "$safeprojectname$-log-{Date}.log"    
+                .WriteTo.RollingFile("BaseCoreApi-log-{Date}.log")     
                 .CreateLogger();
                 
 
@@ -126,6 +123,9 @@ namespace BaseCoreApi
             }
 
             app.UseStaticFiles();
+
+            //Demo middleware 
+            //TODO: Add demo middleware here
 
             //Swagger 
             app.UseSwagger();
