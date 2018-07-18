@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Serilog.Configuration;
 using System;
+using BaseCoreApi.Middelware;
 //using Serilog.Sinks.LogstashHttp;
 
 namespace BaseCoreApi
@@ -125,7 +126,7 @@ namespace BaseCoreApi
             app.UseStaticFiles();
 
             //Demo middleware 
-            //TODO: Add demo middleware here
+            app.UseDemo(); 
 
             //Swagger 
             app.UseSwagger();

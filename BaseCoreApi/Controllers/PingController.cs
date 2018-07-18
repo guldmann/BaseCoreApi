@@ -13,6 +13,5 @@ namespace BaseCoreApi.Controllers
             var ret = "Pong";
             return Ok(ret);
         }
-
     }
 }
