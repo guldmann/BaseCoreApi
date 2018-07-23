@@ -53,9 +53,7 @@ namespace BaseCoreApi
                     AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv6
                 })
                 .WriteTo.RollingFile("BaseCoreApi-log-{Date}.log")     
-                .CreateLogger();
-                
-
+                .CreateLogger();       
 
             /*
              * Work in progress to read serilog settings from AppsettingsSerilog.json 
@@ -63,7 +61,6 @@ namespace BaseCoreApi
             var logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(Configuration)
                 .CreateLogger();
-
             */
 
         }
@@ -75,6 +72,7 @@ namespace BaseCoreApi
         {
 
             services.ConfigureApplicationCookie(option => option.LoginPath = "/Authenticate/");
+
             //JWT Authentication 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -125,8 +123,12 @@ namespace BaseCoreApi
 
             app.UseStaticFiles();
 
-            //Demo middleware 
-            app.UseDemo(); 
+            //Demo middleware only use when path starts with  "/api/Example"
+            app.UseWhen(context => context.Request.Path.StartsWithSegments("/api/Example"), appBuilder =>
+            {
+                appBuilder.UseDemo();
+            });            
+
 
             //Swagger 
             app.UseSwagger();
@@ -138,7 +140,6 @@ namespace BaseCoreApi
             //Authentication
             app.UseAuthentication();
 
-          
 
             //MVC
             app.UseMvc(routes =>
