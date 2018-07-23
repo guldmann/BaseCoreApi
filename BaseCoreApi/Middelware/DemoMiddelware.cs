@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BaseCoreApi.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.AspNetCore.Mvc.ModelBinding; 
 
 namespace BaseCoreApi.Middelware
 {
@@ -17,7 +18,8 @@ namespace BaseCoreApi.Middelware
             _next = next; 
         }
         public async Task InvokeAsync(HttpContext context)
-        {            
+        {
+            
             var name = context.Request.Query["name"].ToString();
             int age;
             Int32.TryParse(context.Request.Query["age"], out age);

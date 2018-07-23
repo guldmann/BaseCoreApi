@@ -33,8 +33,17 @@ namespace BaseCoreApi
                      config.Path = "jwtSettings.json";
                      config.ReloadOnChange = true;
                  })
-                 .AddJsonFile("appsettings.json")
-                 .AddJsonFile("appsettingsSerilog.json")
+                 .AddJsonFile(config =>
+                 {
+                     config.Path = "appsettings.json";
+                     config.ReloadOnChange = true; 
+                 })
+                 
+                 .AddJsonFile(config =>
+                 {
+                     config.Path = "appsettingsSerilog.json";
+                     config.ReloadOnChange = true; 
+                 })
                  .AddEnvironmentVariables()
                  .AddInMemoryCollection();
 
@@ -95,6 +104,8 @@ namespace BaseCoreApi
             //Add MVC
             services.AddMvc();
 
+            services.AddMemoryCache(); 
+
             //Add POCO class
             services.AddSingleton<IPersonService,PersonService>(); 
 
@@ -130,6 +141,9 @@ namespace BaseCoreApi
             }
 
             app.UseStaticFiles();
+
+            //Use rete limit middelware 
+            app.UseRateLimit();
 
             //Demo middleware only use when path starts with  "/api/Example"
             app.UseWhen(context => context.Request.Path.StartsWithSegments("/api/Example"), appBuilder =>
