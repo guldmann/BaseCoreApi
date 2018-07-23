@@ -1,5 +1,6 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BaseCoreApi.Models
 {
@@ -13,6 +14,7 @@ namespace BaseCoreApi.Models
         [Required]
         [Range(1,200)]
         public int Age { get; set; }
-        public int Id { get; set; }
+       
+        internal int Id { get; set; } 
     }
 }
