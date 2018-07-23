@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BaseCoreApi.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 
@@ -16,16 +17,20 @@ namespace BaseCoreApi.Middelware
             _next = next; 
         }
         public async Task InvokeAsync(HttpContext context)
-        {
-            //TODO: bind to object 
-            // intercept and alter request if query name == "john"
-            var query = context.Request.Query["name"].ToString();
-            if (query == "john")
+        {            
+            var name = context.Request.Query["name"].ToString();
+            int age;
+            Int32.TryParse(context.Request.Query["age"], out age);
+
+            Person person = new Person { Name = name, Age = age }; 
+
+            // Intercept and alter request name if person name == "john"
+            if(!string.IsNullOrEmpty(person.Name) && person.Name == "john")
             {
-                var qb = new QueryBuilder();
-                qb.Add("name", "test");
-                qb.Add("age", context.Request.Query["age"].ToString());
-                context.Request.QueryString = qb.ToQueryString();
+                var newQuery = new QueryBuilder();
+                newQuery.Add("name", "new test name");
+                newQuery.Add("age", person.Age.ToString());
+                context.Request.QueryString = newQuery.ToQueryString();
             }
 
             await _next(context);
