@@ -3,20 +3,28 @@ using System.Linq;
 
 namespace BaseCoreApi.Models
 {
-    public class PersonService : IPersonService
-
-    
+    public class PersonService : IPersonService    
     {
         private static List<Person> Persons;
 
         public PersonService()
         {
-            //Add a Person 
+            //Add a default Person 
             if(Persons == null || Persons.Count <1 )
             {
                 Persons = new List<Person>();
                 Persons.Add(new Person { Id = 1, Age = 32, Name = "Joe" });
             }
+        }
+        public bool Validate(string name, int age)
+        {
+            //TODO: Implement
+            return false; 
+        }
+        public bool Validate(Person person)
+        {
+            //TODO: Implement
+            return false; 
         }
 
         public Person Create(string name, int age)

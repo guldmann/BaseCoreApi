@@ -14,6 +14,8 @@ namespace BaseCoreApi.Models
         bool Delete(int id);
 
         bool Exists(int id);
+        bool Validate(string name, int age);
+        bool Validate(Person person); 
 
 
     }
