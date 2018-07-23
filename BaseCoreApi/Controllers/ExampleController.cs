@@ -19,10 +19,19 @@ namespace BaseCoreApi.Controllers
             _logger = logger; 
         }
 
-
-        // GET: api/<controller>
+        /// <summary>
+        /// Get all persons 
+        /// </summary>
+        /// <remarks>
+        /// To access this authentication in header is needed like:
+        /// Authorization: Bearer TOKEN-STRING-HERE
+        /// </remarks>
+        /// <returns>Persons</returns>
+        /// <response code="200">Returns all persons</response>        
         [Authorize]
         [HttpGet]
+        [ProducesResponseType(200)]
+        [Produces("application/json")]
         public IActionResult GetAll()
         {
             var persons = _personService.GetAll();
@@ -30,8 +39,17 @@ namespace BaseCoreApi.Controllers
             return Ok(persons);
         }
 
-        // GET api/<controller>/5
+        /// <summary>
+        /// Get Person by ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Person</returns>
+        /// <response code="200">Returns person with requested id</response> 
+        /// <response code="404">Person with id not found </response> 
         [HttpGet("{id}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [Produces("application/json")]
         public IActionResult Get(int id)
         {           
             if(_personService.Exists(id))
@@ -43,36 +61,80 @@ namespace BaseCoreApi.Controllers
             return NotFound();
         }
 
-        // POST api/<controller>
-        [HttpPost("{name},{age}")]
-        public IActionResult Create(string name, int age)
+        /// <summary>
+        /// Create a new person
+        /// </summary>
+        /// <param name="person"></param>        
+        /// <returns>New created person</returns>
+        /// <response code="201">Returns created person</response> 
+        /// <response code="400">Missing name or age</response> 
+        [HttpPost]
+        [ProducesResponseType(201)]
+        [ProducesResponseType(400)]
+        [Produces("application/json")]
+        public IActionResult Create([Bind("Name","Age")] Person person)
         {
-            
-            var person = _personService.Create(name, age);
-            _logger.LogDebug($"Create {name}, {age} => {person.ToJson()}" ); 
-            return CreatedAtAction(nameof(this.Get), person); 
+            if(ModelState.IsValid)
+            {
+                var p = _personService.Create(person.Name, person.Age);
+                _logger.LogDebug($"Create  => {person.ToJson()}");
+                return CreatedAtAction(nameof(this.Get), p);
+            }
+
+            return BadRequest(ModelState);
+
+            //if (string.IsNullOrEmpty(name)) return BadRequest("Missing Name!");
+            //if (age > 200 || age < 1 ) return BadRequest("Age ti high or to low "); 
+
+          
         }
 
-        // PUT api/<controller>        
+
+        /// <summary>
+        /// Create a new person
+        /// </summary>
+        /// <param name="person">Person object</param>
+        /// <returns>New created person</returns>        
+        /// <response code="201">Returns created person</response> 
+        /// <response code="400">Missing name or bad age</response> 
         [HttpPut]
+        [ProducesResponseType(201)]
+        [ProducesResponseType(400)]
+        [Produces("application/json")]
         public IActionResult Put([FromBody]Person person)
         {
-            var p = _personService.Create(person.Name, person.Age);
-            _logger.LogDebug($"Create  => {person.ToJson()}");
-            return CreatedAtAction(nameof(this.Get), person);
+            if(ModelState.IsValid)
+            {
+                var p = _personService.Create(person.Name, person.Age);
+                _logger.LogDebug($"Create  => {person.ToJson()}");
+                return CreatedAtAction(nameof(this.Get), p);
+            }
+            return BadRequest(ModelState);
+            //if (string.IsNullOrEmpty(person.Name)) return BadRequest("Missing Name");
+            //if (person.Age < 1 || person.Age > 200) return BadRequest("Age to high or to low"); 
+
 
         }
 
-        // DELETE api/<controller>/5
+        /// <summary>
+        /// Delete a person by id 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <response code="202">Person deleted</response> 
+        /// <response code="404">Person with id not found</response> 
         [HttpDelete("{id}")]
+        [ProducesResponseType(202)]
+        [ProducesResponseType(404)]
+        [Produces("application/json")]
         public IActionResult Delete(int id)
         {
             if(_personService.Exists(id))
             {
                 var status = _personService.Delete(id);
-                return Accepted();
+                return Accepted($"Person with {id} deleted = {status}");
             }
-            return BadRequest(); 
+            return NotFound($"Person with {id} not found! "); 
         }
     }
 }
