@@ -15,6 +15,7 @@ using System.Text;
 using Serilog.Configuration;
 using System;
 using BaseCoreApi.Middelware;
+using System.Reflection;
 //using Serilog.Sinks.LogstashHttp;
 
 namespace BaseCoreApi
@@ -91,14 +92,21 @@ namespace BaseCoreApi
             //JWT settings 
             services.Configure<JWTOptions>(Configuration);
 
-            //MVC and POCO classes 
+            //Add MVC
             services.AddMvc();
+
+            //Add POCO class
             services.AddSingleton<IPersonService,PersonService>(); 
 
             //Swagger
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "BaseCoreApi API", Version = "v1" });
+
+                // Set the comments path for the Swagger JSON and UI.
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
         }
 
