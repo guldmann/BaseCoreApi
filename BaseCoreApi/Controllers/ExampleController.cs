@@ -44,7 +44,7 @@ namespace BaseCoreApi.Controllers
         }
 
         // POST api/<controller>
-        [HttpPost]
+        [HttpPost("{name},{age}")]
         public IActionResult Create(string name, int age)
         {
             
@@ -53,10 +53,14 @@ namespace BaseCoreApi.Controllers
             return CreatedAtAction(nameof(this.Get), person); 
         }
 
-        // PUT api/<controller>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
+        // PUT api/<controller>        
+        [HttpPut]
+        public IActionResult Put([FromBody]Person person)
         {
+            var p = _personService.Create(person.Name, person.Age);
+            _logger.LogDebug($"Create  => {person.ToJson()}");
+            return CreatedAtAction(nameof(this.Get), person);
+
         }
 
         // DELETE api/<controller>/5
