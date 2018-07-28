@@ -35,6 +35,11 @@ namespace BaseCoreApi
                  })
                  .AddJsonFile(config =>
                  {
+                     config.Path = "RateLimitSettings.json";
+                     config.ReloadOnChange = true;
+                 })
+                 .AddJsonFile(config =>
+                 {
                      config.Path = "appsettings.json";
                      config.ReloadOnChange = true; 
                  })
@@ -50,7 +55,10 @@ namespace BaseCoreApi
             //Add jwtOption to configuration 
             JWTOptions jWTOptions = new JWTOptions();
             builder.Build().Bind(jWTOptions);
-            Configuration = builder.Build();        
+            RateLimitOptions rateLimitcsOptions = new RateLimitOptions();
+            builder.Build().Bind(rateLimitcsOptions);
+            Configuration = builder.Build();
+
 
             //Log to Elasticsearch on localhost / Kiban  And to Rolling text file 
             //TODO: Get log-level and Elasticsearch Uri from configuration             
@@ -63,16 +71,13 @@ namespace BaseCoreApi
                     AutoRegisterTemplateVersion = AutoRegisterTemplateVersion.ESv6
                 })
                 .WriteTo.RollingFile("BaseCoreApi-log-{Date}.log")     
-                .CreateLogger();       
-
-            /*
-             * Work in progress to read serilog settings from AppsettingsSerilog.json 
-             * 
-            var logger = new LoggerConfiguration()
-                .ReadFrom.Configuration(Configuration)
                 .CreateLogger();
-            */
 
+
+           //WIP to read serilog settings from AppsettingsSerilog.json           
+          //var logger = new LoggerConfiguration()
+          //    .ReadFrom.Configuration(Configuration)
+          //    .CreateLogger();
         }
 
         public IConfigurationRoot Configuration { get; }
@@ -81,7 +86,7 @@ namespace BaseCoreApi
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.ConfigureApplicationCookie(option => option.LoginPath = "/Authenticate/");
+            services.ConfigureApplicationCookie(option => option.LoginPath = "/Authenticate/");           
 
             //JWT Authentication 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -98,15 +103,16 @@ namespace BaseCoreApi
                 });
             
 
-            //JWT settings 
+            //Add settings options to Configuration 
             services.Configure<JWTOptions>(Configuration);
+            services.Configure<RateLimitOptions>(Configuration);
 
             //Add MVC
             services.AddMvc();
 
             services.AddMemoryCache(); 
 
-            //Add POCO class
+            //Add personservice class as singleton
             services.AddSingleton<IPersonService,PersonService>(); 
 
             //Swagger
@@ -132,6 +138,13 @@ namespace BaseCoreApi
             //DEV MODE 
             if (env.IsDevelopment())
             {
+                //Add header when in developer mode 
+                app.Use(async(context,next) =>
+                {
+                    context.Response.Headers["X-Environment-name"] = env.EnvironmentName;
+                    await next();
+                });
+
                 app.UseBrowserLink();
                 app.UseDeveloperExceptionPage();
             }
@@ -142,7 +155,7 @@ namespace BaseCoreApi
 
             app.UseStaticFiles();
 
-            //Use rete limit middelware 
+           //Use rete limit middelware 
             app.UseRateLimit();
 
             //Demo middleware only use when path starts with  "/api/Example"

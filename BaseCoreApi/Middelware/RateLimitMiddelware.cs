@@ -1,40 +1,41 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Net;
 using System.Threading.Tasks;
+using BaseCoreApi.Models; 
 
 namespace BaseCoreApi.Middelware
 {
     public class RateLimitMiddelware
-    {
+    {        
         private readonly RequestDelegate _next;
-        //TODO: Get limit from settings. 
-        //TODO: Get White list from settings. 
-        private const int limit = 5; 
         private readonly IMemoryCache _memoryCashe;
-        private readonly ILogger<RateLimitMiddelware> _logger; 
+        private readonly ILogger<RateLimitMiddelware> _logger;
+        private  RateLimitOptions options;
 
-        public RateLimitMiddelware(RequestDelegate next, IMemoryCache memoryCache,ILogger<RateLimitMiddelware> logger )
-        {
+        public RateLimitMiddelware(RequestDelegate next, IMemoryCache memoryCache,ILogger<RateLimitMiddelware> logger)
+        {                                                                  
             _next = next;
             _memoryCashe = memoryCache;
-            _logger = logger; 
+            _logger = logger;           
         }
-        public async Task InvokeAsync(HttpContext context)
-        {
+        public async Task InvokeAsync(HttpContext context, IOptionsSnapshot<RateLimitOptions> rateLimitOptions)
+        {            
+            options = rateLimitOptions.Value; 
             var requestKey = context.Connection.RemoteIpAddress;
-            int hitCount = 0;
+            int hitCount = 0;            
 
             var cacheEntryOptions = new MemoryCacheEntryOptions()
             {
-                AbsoluteExpiration = DateTime.Now.AddSeconds(30)
+                AbsoluteExpiration = DateTime.Now.AddSeconds(options.TimeSec)
             };
 
             if(_memoryCashe.TryGetValue(requestKey, out hitCount))
             {
-                if(hitCount < limit)
+                if(hitCount < options.Limit)
                 {
                     await ProcessRequest(context, requestKey, hitCount, cacheEntryOptions);
                 }
@@ -54,11 +55,20 @@ namespace BaseCoreApi.Middelware
 
         private async Task ProcessRequest(HttpContext context, IPAddress requestKey, int hitCount, MemoryCacheEntryOptions cacheEntryOptions)
         {
-            hitCount++;
-            _memoryCashe.Set(requestKey, hitCount, cacheEntryOptions); 
-            context.Response.Headers["X-Rate-Limit"] = limit.ToString();
-            context.Response.Headers["X-Rate-Limit-Remaining"] = (limit - hitCount).ToString();
-            await _next(context); 
+            if (Array.IndexOf(options.WhiteList, requestKey.ToString()) >= 0)
+            {
+                context.Response.Headers["X-Rate-Limit"] = "No-limit"; 
+                context.Response.Headers["X-Rate-Limit-Remaining"] = "No-limit";
+                await _next(context);
+            }
+            else
+            {
+                hitCount++;
+                _memoryCashe.Set(requestKey, hitCount, cacheEntryOptions);
+                context.Response.Headers["X-Rate-Limit"] = options.Limit.ToString();
+                context.Response.Headers["X-Rate-Limit-Remaining"] = (options.Limit - hitCount).ToString();
+                await _next(context);
+            }
         }
     }
 }
