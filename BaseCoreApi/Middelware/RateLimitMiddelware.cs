@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Net;
 using System.Threading.Tasks;
-using BaseCoreApi.Models; 
+using BaseCoreApi.Settings; 
 
 namespace BaseCoreApi.Middelware
 {

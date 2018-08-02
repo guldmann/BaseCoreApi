@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using BaseCoreApi.Models;
+using BaseCoreApi.Settings;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;

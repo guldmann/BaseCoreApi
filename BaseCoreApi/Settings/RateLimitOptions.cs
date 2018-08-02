@@ -1,5 +1,5 @@
 ﻿
-namespace BaseCoreApi.Models
+namespace BaseCoreApi.Settings
 {
     public class RateLimitOptions
     {
