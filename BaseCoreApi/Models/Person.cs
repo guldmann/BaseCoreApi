@@ -14,7 +14,7 @@ namespace BaseCoreApi.Models
         [Required]
         [Range(1,200)]
         public int Age { get; set; }
-       
-        internal int Id { get; set; } 
+       [Key]
+        internal int PersonId { get; set; } 
     }
 }

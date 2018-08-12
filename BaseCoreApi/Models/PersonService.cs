@@ -1,19 +1,28 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using BaseCoreApi.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace BaseCoreApi.Models
 {
+
+
+    //TODO: Rewrite this to use database 
     public class PersonService : IPersonService    
     {
         private static List<Person> Persons;
+        private readonly PersonContext _personContext;
 
-        public PersonService()
+        public PersonService(PersonContext personContext)
         {
+            _personContext = personContext;
+
             //Add a default Person 
-            if(Persons == null || Persons.Count <1 )
+            if (Persons == null || Persons.Count <1 )
             {
                 Persons = new List<Person>();
-                Persons.Add(new Person { Id = 1, Age = 32, Name = "Joe" });
+                Persons.Add(new Person { PersonId = 1, Age = 32, Name = "Joe" });
             }
         }
         public bool Validate(string name, int age)
@@ -29,16 +38,20 @@ namespace BaseCoreApi.Models
 
         public Person Create(string name, int age)
         {
-            int id = Persons.LastOrDefault().Id + 1;
-            Persons.Add(new Person { Name = name, Age = age, Id = id });
-            return Persons.LastOrDefault();           
+            _personContext.Person.Add(new Person { Name = name, Age = age });
+            /*
+            int id = Persons.LastOrDefault().PersonId + 1;
+            Persons.Add(new Person { Name = name, Age = age, PersonId = id });
+            */
+           var result =  _personContext.SaveChanges();
+            return _personContext.Person.LastOrDefault();           
         }
 
         public bool Delete(int id)
         {
-            if(Persons.Exists(x => x.Id == id))
+            if(Persons.Exists(x => x.PersonId == id))
             {
-                var index = Persons.FindIndex(x => x.Id == id);
+                var index = Persons.FindIndex(x => x.PersonId == id);
                 Persons.RemoveAt(index);
                 return true;
             }
@@ -47,21 +60,25 @@ namespace BaseCoreApi.Models
 
         public bool Exists(int id)
         {
-            return Persons.Exists(x => x.Id == id);
+            return Persons.Exists(x => x.PersonId == id);
         }
 
         public Person Get(int id)
         {
-            if (Persons.Exists(x => x.Id == id))
+           
+
+
+            if (Persons.Exists(x => x.PersonId == id))
             {
-                return Persons.Find(x => x.Id == id);
+                return Persons.Find(x => x.PersonId == id);
             }
             return null; 
         }
 
         public List<Person> GetAll()
         {
-            return Persons; 
+            
+                return Persons; 
         }
     }
 }

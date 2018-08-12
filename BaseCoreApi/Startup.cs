@@ -17,32 +17,33 @@ using System;
 using BaseCoreApi.Middelware;
 using System.Reflection;
 using BaseCoreApi.Settings;
+using BaseCoreApi.Data;
+using Microsoft.EntityFrameworkCore;
 
 //using Serilog.Sinks.LogstashHttp;
 
 namespace BaseCoreApi
 {
     public class Startup
-    {        
-
+    {
         public Startup(IHostingEnvironment env)
         {
             // Load Settings
             var builder = new ConfigurationBuilder()
-                 .SetBasePath(env.ContentRootPath)                
+                 .SetBasePath(env.ContentRootPath)
                  .AddJsonFile(config =>
                  {
                      config.Path = "Settings/appsettings.json";
-                     config.ReloadOnChange = true; 
+                     config.ReloadOnChange = true;
                  })
                  
                  .AddJsonFile(config =>
                  {
                      config.Path = "Settings/appsettingsSerilog.json";
-                     config.ReloadOnChange = true; 
+                     config.ReloadOnChange = true;
                  })
                  .AddEnvironmentVariables()
-                 .AddInMemoryCollection();           
+                 .AddInMemoryCollection();
             Configuration = builder.Build();
 
 
@@ -59,7 +60,7 @@ namespace BaseCoreApi
                 .WriteTo.RollingFile(Configuration["Serilog:File"])
                 .CreateLogger();
 
-           //WIP to read serilog settings from AppsettingsSerilog.json           
+           //WIP to read serilog settings from AppsettingsSerilog.json
           //var logger = new LoggerConfiguration()
           //    .ReadFrom.Configuration(Configuration)
           //    .CreateLogger();
@@ -70,14 +71,18 @@ namespace BaseCoreApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //TODO Work in progress
+            //TODO: if development rebuild database at startup and add some data.
+            //EF Database
+            var connectionString = Configuration.GetConnectionString("localdb");
+            services.AddDbContext<PersonContext>(
+                options => options.UseSqlServer(connectionString));
+
             //Add settings poco classes to DI 
             services.Configure<RateLimitOptions>(Configuration.GetSection("RateLimit"));
             services.Configure<JWTOptions>(Configuration.GetSection("Jwt"));
-
-            //TODO: this does not redirect to auth 
-            services.ConfigureApplicationCookie(option => option.LoginPath = "/api/Authenticate/");
-
-            //JWT Authentication             
+                       
+            //JWT Authentication
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -88,9 +93,8 @@ namespace BaseCoreApi
                         IssuerSigningKey = serverSecret,
                         ValidIssuer = Configuration["Jwt:Issuer"],
                         ValidAudience = Configuration["Jwt:Audience"]
-                    };                    
+                    };                   
                 });
-            
 
             //Add MVC
             services.AddMvc();
@@ -99,7 +103,9 @@ namespace BaseCoreApi
             services.AddMemoryCache(); 
 
             //Add personservice class as singleton
-            services.AddSingleton<IPersonService,PersonService>(); 
+           // services.AddSingleton<IPersonService,PersonService>();
+           //Changed from singelton to scoped for dbcontext to work 
+            services.AddScoped<IPersonService, PersonService>();
 
             //Swagger
             services.AddSwaggerGen(c =>
@@ -114,16 +120,19 @@ namespace BaseCoreApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory )
         {
             //Logging 
             loggerFactory.AddDebug();
             loggerFactory.AddConsole();
-            loggerFactory.AddSerilog(); 
+            loggerFactory.AddSerilog();
+
+           
 
             //DEV MODE 
             if (env.IsDevelopment())
             {
+                
                 //Add header when in developer mode 
                 app.Use(async(context,next) =>
                 {
@@ -132,6 +141,8 @@ namespace BaseCoreApi
                 });
                 app.UseBrowserLink();
                 app.UseDeveloperExceptionPage();
+                app.UseDatabaseErrorPage(); 
+
             }
             else
             {
@@ -148,14 +159,14 @@ namespace BaseCoreApi
             {
                 app.UseRateLimit();
                 appBuilder.UseDemo();
-            });            
+            });
 
             //Swagger 
             app.UseSwagger();
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "BaseCoreApi API V1");
-            });            
+            });
 
             //MVC
             app.UseMvc(routes =>
